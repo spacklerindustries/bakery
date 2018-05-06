@@ -45,6 +45,7 @@ type PiManager struct {
 
 type bakeRequest struct {
 	BakeformName string `json:"bakeformName"`
+	BakeformPiId string `json:"bakeformPiId"`
 }
 
 func NewPiManager(bakeforms bakeformInventory, dm *diskManager, inventoryDbPath, ppiPath, ppiConfigPath string) (piManager, error) {
@@ -254,12 +255,24 @@ func (pm *PiManager) BakeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//select one from the list. don't really care which one
-	targetPiId := ""
-	for key, _ := range list {
-		targetPiId = key
-		break
-	}
+
+  targetPiId := ""
+  if params.BakeformPiId == "" {
+    //select one from the list. don't really care which one
+    for key, _ := range list {
+      targetPiId = key
+	     break
+     }
+  } else {
+    //else we have one defined, check it is in the fridge
+    for key, _ := range list {
+      if key == params.BakeformPiId {
+        targetPiId = key
+        break
+      }
+    }
+  }
+
 
 	if targetPiId == "" {
 		w.WriteHeader(http.StatusNotFound)
