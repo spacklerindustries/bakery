@@ -1,3 +1,14 @@
+# Starting Bakery
+## Env Vars
+```
+export NFS_ADDRESS=$(hostname -I | cut -d " " -f 1)
+export BAKERY_ROOT=/bakery
+export DB_PATH=/bakery/piInventory.db
+export PPI_PATH=/bakery/ppi
+export PPI_CONFIG_PATH=/bakery/config/ppiConfig.json
+export KPARTX_PATH=kpartx
+```
+
 # Bootup
 ## Get cmdline.txt
 ```
