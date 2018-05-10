@@ -95,6 +95,12 @@ func (f *FileBackend) CopyNfsFolder(s, dest string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+  log.Println("Fixing fstab...")
+  d1 := []byte("proc\t/proc\tproc\tdefaults\t0\t0\n")
+  err2 := ioutil.WriteFile(d+"/etc/fstab", d1, 0644)
+  if err2 != nil {
+		return "", err2
+	}
 
 	return d, f.regenNfsExports()
 }
