@@ -27,6 +27,7 @@ type piManager interface {
 	GetPiHandler(w http.ResponseWriter, r *http.Request)
 	OvenHandler(w http.ResponseWriter, r *http.Request)
 	FridgeHandler(w http.ResponseWriter, r *http.Request)
+	UnFridgeHandler(w http.ResponseWriter, r *http.Request)
 	RebootHandler(w http.ResponseWriter, r *http.Request)
 	AttachDiskHandler(w http.ResponseWriter, r *http.Request)
 	DetachDiskHandler(w http.ResponseWriter, r *http.Request)
@@ -195,6 +196,16 @@ func (pm *PiManager) UnbakePi(pi *PiInfo, bf *Bakeform) {
 	}
 }
 
+func (i *PiManager) removePi(qpiId string) (error) {
+  log.Printf("Removing pi with id: %v\n", qpiId)
+	_, err := i.db.Exec(fmt.Sprintf("delete from inventory where id = '%v'", qpiId))
+	if err != nil {
+		return err
+	}
+  log.Printf("Pi with id %v removed\n", qpiId)
+	return nil
+}
+
 func (i *PiManager) listPis(qStatus piStatus) (piList, error) {
 	list := make(piList)
 
@@ -345,6 +356,30 @@ func (i *PiManager) OvenHandler(w http.ResponseWriter, r *http.Request) {
 	var jsonBytes []byte
 	jsonBytes, err = json.Marshal(piList)
 	w.Write(jsonBytes)
+}
+
+func (i *PiManager) UnFridgeHandler(w http.ResponseWriter, r *http.Request) {
+  urlvars := mux.Vars(r)
+	piId := urlvars["piId"]
+
+	pi, err := i.GetPi(piId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if pi.Status != NOTINUSE {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Can only remove pis that aren't already baked from the fridge"))
+		return
+	}
+
+	err2 := i.removePi(pi.Id)
+	if err2 != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (i *PiManager) FridgeHandler(w http.ResponseWriter, r *http.Request) {
