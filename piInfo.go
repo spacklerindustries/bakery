@@ -2,14 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
-	"os/exec"
 	"strings"
 	"time"
+
+  "github.com/eclipse/paho.mqtt.golang"
 )
 
 type piStatus int
@@ -105,43 +103,21 @@ func (p *PiInfo) doPpiAction(action string) error {
 	if action != "poweron" && action != "poweroff" {
 		return fmt.Errorf("action %v not supported", action)
 	}
-
 	params := ppiParams{
 		PiId:   p.Id,
 		Action: action,
 	}
-
-	jsonBytes, err := json.Marshal(params)
-	if err != nil {
-		return err
-	}
-
-	ppicmd := exec.Command(p.ppiPath, "-c", p.ppiConfigPath)
-	ppistdin, err := ppicmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	ppistdout, _ := ppicmd.StdoutPipe()
-	ppistderr, _ := ppicmd.StderrPipe()
-
-	err = ppicmd.Start()
-	if err != nil {
-		return err
-	}
-
-	io.WriteString(ppistdin, string(jsonBytes))
-	ppistdin.Close()
-
-	out, _ := ioutil.ReadAll(ppistdout)
-	outerr, _ := ioutil.ReadAll(ppistderr)
-
-	err = ppicmd.Wait()
-	if err != nil || len(outerr) != 0 || string(out) != "ok" {
-		//log.Printf("ppi output: %v/%v", string(outerr), string(out))
-		return fmt.Errorf("%v %v", string(outerr), string(out))
-	}
-
+  /* mqtt, maybe this could be done better? */
+  opts := mqtt.NewClientOptions().AddBroker("tcp://"+mqttServer).SetClientID("Bakery")
+  c := mqtt.NewClient(opts)
+  if token := c.Connect(); token.Wait() && token.Error() != nil {
+    panic(token.Error())
+  }
+  b := []byte(`{"message_type": "power_req", "message_data": { "pi_id": "`+params.PiId+`", "power_action": "`+params.Action+`" }}`)
+  token := c.Publish("bakery/power", 0, false, b)
+  token.Wait()
+  c.Disconnect(200)
+  /* mqtt end, maybe this could be done better? */
 	return nil
 }
 

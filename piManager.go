@@ -40,8 +40,8 @@ type PiManager struct {
 	bakeforms          bakeformInventory
 	diskManager        *diskManager
 	piProvisionMutexes map[string]*sync.Mutex
-	ppiPath            string
-	ppiConfigPath      string
+	//ppiPath            string
+	//ppiConfigPath      string
 }
 
 type bakeRequest struct {
@@ -49,7 +49,7 @@ type bakeRequest struct {
 	BakeformPiId string `json:"bakeformPiId"`
 }
 
-func NewPiManager(bakeforms bakeformInventory, dm *diskManager, inventoryDbPath, ppiPath, ppiConfigPath string) (piManager, error) {
+func NewPiManager(bakeforms bakeformInventory, dm *diskManager, inventoryDbPath string) (piManager, error) {
 	db, err := sql.Open("sqlite3", inventoryDbPath)
 	sqlStmt := "create table if not exists inventory (id text not null primary key, status integer, bakeform text, diskIds text);"
 
@@ -63,8 +63,8 @@ func NewPiManager(bakeforms bakeformInventory, dm *diskManager, inventoryDbPath,
 		bakeforms:          bakeforms,
 		piProvisionMutexes: make(map[string]*sync.Mutex),
 		diskManager:        dm,
-		ppiPath:            ppiPath,
-		ppiConfigPath:      ppiConfigPath,
+		//ppiPath:            ppiPath,
+		//ppiConfigPath:      ppiConfigPath,
 	}
 
 	stuckPis, _ := newInv.listPis(PREPARING)
@@ -86,8 +86,8 @@ func (i *PiManager) NewPi(piId string) PiInfo {
 		db:            i.db,
 		Id:            piId,
 		Status:        NOTINUSE,
-		ppiPath:       i.ppiPath,
-		ppiConfigPath: i.ppiConfigPath,
+		//ppiPath:       i.ppiPath,
+		//ppiConfigPath: i.ppiConfigPath,
 	}
 }
 
@@ -109,8 +109,8 @@ func (i *PiManager) GetPi(piId string) (PiInfo, error) {
 			Id:             id,
 			Status:         status,
 			SourceBakeform: i.bakeforms.List()[bakeform],
-			ppiPath:        i.ppiPath,
-			ppiConfigPath:  i.ppiConfigPath,
+			//ppiPath:        i.ppiPath,
+			//ppiConfigPath:  i.ppiConfigPath,
 		}
 
 		diskIds := strings.Split(diskIdsString, ",")
@@ -226,8 +226,8 @@ func (i *PiManager) listPis(qStatus piStatus) (piList, error) {
 			Id:             id,
 			Status:         status,
 			SourceBakeform: i.bakeforms.List()[bakeform],
-			ppiPath:        i.ppiPath,
-			ppiConfigPath:  i.ppiConfigPath,
+			//ppiPath:        i.ppiPath,
+			//ppiConfigPath:  i.ppiConfigPath,
 		}
 
 		diskIds := strings.Split(diskIdsString, ",")

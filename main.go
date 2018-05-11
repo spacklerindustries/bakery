@@ -10,14 +10,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var mqttServer = ""
+
 func main() {
 	httpPort := 8080
 
 	bakeryRoot := os.Getenv("BAKERY_ROOT")
 	nfsServer := os.Getenv("NFS_ADDRESS")
 	inventoryDbPath := os.Getenv("DB_PATH")
-	ppiPath := os.Getenv("PPI_PATH")
-	ppiConfigPath := os.Getenv("PPI_CONFIG_PATH")
+  mqttServer = os.Getenv("MQTT_SERVER")
+
 	kpartxPath := os.Getenv("KPARTX_PATH")
 
 	if bakeryRoot == "" {
@@ -32,8 +34,8 @@ func main() {
 		log.Fatalln("DB_PATH env var not set")
 	}
 
-	if ppiPath == "" {
-		log.Fatalln("PPI_PATH env var not set")
+	if mqttServer == "" {
+		log.Fatalln("MQTT_SERVER env var not set")
 	}
 
 	if kpartxPath == "" {
@@ -60,7 +62,7 @@ func main() {
 	}
 	defer bakeforms.UnmountAll()
 
-	pile, err := NewPiManager(bakeforms, diskmgr, inventoryDbPath, ppiPath, ppiConfigPath)
+	pile, err := NewPiManager(bakeforms, diskmgr, inventoryDbPath)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
