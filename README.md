@@ -1,6 +1,7 @@
 # Starting Bakery
 ## Env Vars
 ```
+export HTTP_PORT=8080
 export NFS_ADDRESS=$(hostname -I | cut -d " " -f 1)
 export BAKERY_ROOT=/bakery
 export DB_PATH=/bakery/piInventory.db
