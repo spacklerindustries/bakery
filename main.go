@@ -11,6 +11,8 @@ import (
 )
 
 var mqttServer = ""
+var greensKeeper = ""
+var greensKeeperToken = ""
 
 func main() {
   httpPort := os.Getenv("HTTP_PORT")
@@ -18,6 +20,8 @@ func main() {
   nfsServer := os.Getenv("NFS_ADDRESS")
   inventoryDbPath := os.Getenv("DB_PATH")
   mqttServer = os.Getenv("MQTT_SERVER")
+  greensKeeper = os.Getenv("GK_SERVER")
+  greensKeeperToken = os.Getenv("GK_TOKEN")
   kpartxPath := os.Getenv("KPARTX_PATH")
 
   if httpPort == "" {
@@ -38,6 +42,14 @@ func main() {
 
   if mqttServer == "" {
     log.Fatalln("MQTT_SERVER env var not set")
+  }
+
+  if greensKeeper == "" {
+    log.Fatalln("GK_SERVER env var not set")
+  }
+
+  if greensKeeperToken == "" {
+    log.Fatalln("GK_TOKEN env var not set")
   }
 
   if kpartxPath == "" {

@@ -6,8 +6,11 @@ import (
 	"log"
 	"strings"
 	"time"
+  "io/ioutil"
+  "net/http"
+  //"bytes"
 
-  "github.com/eclipse/paho.mqtt.golang"
+  //"github.com/eclipse/paho.mqtt.golang"
 )
 
 type piStatus int
@@ -107,17 +110,29 @@ func (p *PiInfo) doPpiAction(action string) error {
 		PiId:   p.Id,
 		Action: action,
 	}
-  /* mqtt, maybe this could be done better? */
-  opts := mqtt.NewClientOptions().AddBroker("tcp://"+mqttServer).SetClientID("Bakery")
-  c := mqtt.NewClient(opts)
-  if token := c.Connect(); token.Wait() && token.Error() != nil {
-    panic(token.Error())
+  var netClient = &http.Client{
+    Timeout: time.Second * 10,
   }
-  b := []byte(`{"message_type": "power_req", "message_data": { "pi_id": "`+params.PiId+`", "power_action": "`+params.Action+`" }}`)
-  token := c.Publish("bakery/power", 0, false, b)
-  token.Wait()
-  c.Disconnect(200)
-  /* mqtt end, maybe this could be done better? */
+  token := greensKeeperToken
+  req, _ := http.NewRequest("GET", greensKeeper+"/api/v1/slots/pi/"+params.PiId, nil)
+  req.Header.Add("Authorization", "Bearer "+token)
+  resp, _ := netClient.Do(req)
+  log.Printf("%v%v%v", mqttServer,"/api/v1/slots/pi/",params.PiId)
+  defer resp.Body.Close()
+  body, _ := ioutil.ReadAll(resp.Body)
+  textBytes := []byte(body)
+  slotId := string(textBytes)[1 : len(string(textBytes))-1]
+  if string(slotId) == "" {
+    log.Printf("No matching slot for %v", params.PiId)
+  } else {
+    log.Printf("%v %v %v", params.Action, params.PiId, string(slotId))
+    req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/slots/"+string(slotId)+"/"+params.Action, nil)
+    req.Header.Add("Authorization", "Bearer "+token)
+    resp, _ := netClient.Do(req)
+    body, _ := ioutil.ReadAll(resp.Body)
+    log.Printf(string(body))
+    defer resp.Body.Close()
+  }
 	return nil
 }
 
