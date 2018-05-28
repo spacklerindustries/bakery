@@ -103,7 +103,7 @@ func (p *PiInfo) Unbake(dm *diskManager) error {
 }
 
 func (p *PiInfo) doPpiAction(action string) error {
-	if action != "poweron" && action != "poweroff" {
+	if action != "on" && action != "off" {
 		return fmt.Errorf("action %v not supported", action)
 	}
 	params := ppiParams{
@@ -126,7 +126,7 @@ func (p *PiInfo) doPpiAction(action string) error {
     log.Printf("No matching slot for %v", params.PiId)
   } else {
     log.Printf("%v %v %v", params.Action, params.PiId, string(slotId))
-    req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/slots/"+string(slotId)+"/"+params.Action, nil)
+    req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/slots/"+string(slotId)+"/power/"+params.Action, nil)
     req.Header.Add("Authorization", "Bearer "+token)
     resp, _ := netClient.Do(req)
     body, _ := ioutil.ReadAll(resp.Body)
@@ -137,22 +137,22 @@ func (p *PiInfo) doPpiAction(action string) error {
 }
 
 func (p *PiInfo) PowerOn() error {
-	return p.doPpiAction("poweron")
+	return p.doPpiAction("on")
 }
 
 func (p *PiInfo) PowerOff() error {
-	return p.doPpiAction("poweroff")
+	return p.doPpiAction("off")
 }
 
 func (p *PiInfo) PowerCycle() error {
-	err := p.doPpiAction("poweroff")
+	err := p.doPpiAction("off")
 	if err != nil {
 		return err
 	}
 
 	time.Sleep(1 * time.Second)
 
-	return p.doPpiAction("poweron")
+	return p.doPpiAction("on")
 }
 
 func (p *PiInfo) AttachDisk(dsk *disk) error {
