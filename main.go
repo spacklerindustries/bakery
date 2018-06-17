@@ -13,12 +13,14 @@ import (
 var mqttServer = ""
 var greensKeeper = ""
 var greensKeeperToken = ""
+var templatePath = ""
 
 func main() {
   httpPort := os.Getenv("HTTP_PORT")
   bakeryRoot := os.Getenv("BAKERY_ROOT")
   nfsServer := os.Getenv("NFS_ADDRESS")
   inventoryDbPath := os.Getenv("DB_PATH")
+  templatePath = os.Getenv("TEMPLATE_PATH")
   mqttServer = os.Getenv("MQTT_SERVER")
   greensKeeper = os.Getenv("GK_SERVER")
   greensKeeperToken = os.Getenv("GK_TOKEN")
@@ -38,6 +40,10 @@ func main() {
 
   if inventoryDbPath == "" {
     log.Fatalln("DB_PATH env var not set")
+  }
+
+  if templatePath == "" {
+    log.Fatalln("TEMPLATE_PATH env var not set")
   }
 
   if mqttServer == "" {

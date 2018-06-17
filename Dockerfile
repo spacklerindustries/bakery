@@ -16,6 +16,7 @@ ENV NFS_ADDRESS=127.0.0.1
 ENV BAKERY_ROOT=/app/bakery
 ENV DB_PATH=/app/bakery/piDb.db
 ENV KPARTX_PATH=kpartx
+ENV TEMPLATE_PATH=/go/src/bakery/fileTemplates
 
 VOLUME /app/bakery
 

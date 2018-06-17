@@ -76,7 +76,7 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("%v requested for: %v\n", filename, pi.Id)
-		t, err := template.New("templatefile").ParseFiles(fullFilename)
+		t, err := template.New("templatefile").ParseFiles(templatePath+"/cmdline.txt")
 		if err != nil {
 			panic(err)
 		}
