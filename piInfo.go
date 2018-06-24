@@ -117,7 +117,7 @@ func (p *PiInfo) doPpiAction(action string) error {
   req, _ := http.NewRequest("GET", greensKeeper+"/api/v1/slots/pi/"+params.PiId, nil)
   req.Header.Add("Authorization", "Bearer "+token)
   resp, _ := netClient.Do(req)
-  log.Printf("%v%v%v", mqttServer,"/api/v1/slots/pi/",params.PiId)
+  log.Printf("%v%v%v", greensKeeper,"/api/v1/slots/pi/",params.PiId)
   defer resp.Body.Close()
   body, _ := ioutil.ReadAll(resp.Body)
   textBytes := []byte(body)

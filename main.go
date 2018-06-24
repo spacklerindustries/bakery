@@ -10,7 +10,6 @@ import (
   "github.com/gorilla/mux"
 )
 
-var mqttServer = ""
 var greensKeeper = ""
 var greensKeeperToken = ""
 var templatePath = ""
@@ -21,7 +20,6 @@ func main() {
   nfsServer := os.Getenv("NFS_ADDRESS")
   inventoryDbPath := os.Getenv("DB_PATH")
   templatePath = os.Getenv("TEMPLATE_PATH")
-  mqttServer = os.Getenv("MQTT_SERVER")
   greensKeeper = os.Getenv("GK_SERVER")
   greensKeeperToken = os.Getenv("GK_TOKEN")
   kpartxPath := os.Getenv("KPARTX_PATH")
@@ -44,10 +42,6 @@ func main() {
 
   if templatePath == "" {
     log.Fatalln("TEMPLATE_PATH env var not set")
-  }
-
-  if mqttServer == "" {
-    log.Fatalln("MQTT_SERVER env var not set")
   }
 
   if greensKeeper == "" {

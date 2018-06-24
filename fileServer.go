@@ -57,6 +57,7 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
 	if pi.Status == NOTINUSE {
 		//Pi is not in inventory or not in use. Then don't serve files and power it off
 		log.Printf("Pi %v came online but it's not in use. Powering it off\n", pi.Id)
+    // FIXME should poll bushwood to check if the pi.Id exists yet
 		err = pi.PowerOff()
 		if err != nil {
 			log.Println("A Pi just came online but I can't control its power state. Error:" + err.Error())
