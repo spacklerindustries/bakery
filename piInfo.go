@@ -113,11 +113,11 @@ func (p *PiInfo) doPpiAction(action string) error {
   var netClient = &http.Client{
     Timeout: time.Second * 10,
   }
-  token := greensKeeperToken
-  req, _ := http.NewRequest("GET", greensKeeper+"/api/v1/slots/pi/"+params.PiId, nil)
+  token := bushwoodToken
+  req, _ := http.NewRequest("GET", bushwood+"/api/v1/slots/pi/"+params.PiId, nil)
   req.Header.Add("Authorization", "Bearer "+token)
   resp, _ := netClient.Do(req)
-  log.Printf("%v%v%v", greensKeeper,"/api/v1/slots/pi/",params.PiId)
+  log.Printf("%v%v%v", bushwood,"/api/v1/slots/pi/",params.PiId)
   defer resp.Body.Close()
   body, _ := ioutil.ReadAll(resp.Body)
   textBytes := []byte(body)
@@ -126,7 +126,7 @@ func (p *PiInfo) doPpiAction(action string) error {
     log.Printf("No matching slot for %v", params.PiId)
   } else {
     log.Printf("%v %v %v", params.Action, params.PiId, string(slotId))
-    req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/slots/"+string(slotId)+"/power/"+params.Action, nil)
+    req, _ := http.NewRequest("POST", bushwood+"/api/v1/slots/"+string(slotId)+"/power/"+params.Action, nil)
     req.Header.Add("Authorization", "Bearer "+token)
     resp, _ := netClient.Do(req)
     body, _ := ioutil.ReadAll(resp.Body)

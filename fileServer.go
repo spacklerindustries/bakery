@@ -9,6 +9,7 @@ import (
   "io/ioutil"
   "fmt"
   "os"
+  "time"
 
 	"github.com/gorilla/mux"
   "github.com/google/uuid"
@@ -57,7 +58,33 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
 	if pi.Status == NOTINUSE {
 		//Pi is not in inventory or not in use. Then don't serve files and power it off
 		log.Printf("Pi %v came online but it's not in use. Powering it off\n", pi.Id)
-    // FIXME should poll bushwood to check if the pi.Id exists yet
+    // poll bushwood
+    var netClient = &http.Client{
+      Timeout: time.Second * 10,
+    }
+    token := bushwoodToken
+    req, _ := http.NewRequest("GET", bushwood+"/api/v1/slots/pi/"+pi.Id, nil)
+    req.Header.Add("Authorization", "Bearer "+token)
+    timeout_count := 0
+    //loop 6 times and break (30 seconds) timeout if no result
+    for {
+      if timeout_count == 6 {
+        break
+      }
+      resp, _ := netClient.Do(req)
+      log.Printf("%v%v%v", bushwood,"/api/v1/slots/pi/",pi.Id)
+      body, _ := ioutil.ReadAll(resp.Body)
+      textBytes := []byte(body)
+      resp.Body.Close()
+      slotId := string(textBytes)[1 : len(string(textBytes))-1]
+      //check if our response is empty, if it is, sleep, increment, and try again
+      if string(slotId) == "" {
+        time.Sleep(5 * time.Second)
+        timeout_count++
+      } else {
+        break
+      }
+    }
 		err = pi.PowerOff()
 		if err != nil {
 			log.Println("A Pi just came online but I can't control its power state. Error:" + err.Error())

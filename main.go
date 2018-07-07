@@ -10,8 +10,8 @@ import (
   "github.com/gorilla/mux"
 )
 
-var greensKeeper = ""
-var greensKeeperToken = ""
+var bushwood = ""
+var bushwoodToken = ""
 var templatePath = ""
 
 func main() {
@@ -20,8 +20,8 @@ func main() {
   nfsServer := os.Getenv("NFS_ADDRESS")
   inventoryDbPath := os.Getenv("DB_PATH")
   templatePath = os.Getenv("TEMPLATE_PATH")
-  greensKeeper = os.Getenv("GK_SERVER")
-  greensKeeperToken = os.Getenv("GK_TOKEN")
+  bushwood = os.Getenv("BUSHWOOD_SERVER")
+  bushwoodToken = os.Getenv("BUSHWOOD_TOKEN")
   kpartxPath := os.Getenv("KPARTX_PATH")
 
   if httpPort == "" {
@@ -44,12 +44,12 @@ func main() {
     log.Fatalln("TEMPLATE_PATH env var not set")
   }
 
-  if greensKeeper == "" {
-    log.Fatalln("GK_SERVER env var not set")
+  if bushwood == "" {
+    log.Fatalln("BUSHWOOD_SERVER env var not set")
   }
 
-  if greensKeeperToken == "" {
-    log.Fatalln("GK_TOKEN env var not set")
+  if bushwoodToken == "" {
+    log.Fatalln("BUSHWOOD_TOKEN env var not set")
   }
 
   if kpartxPath == "" {

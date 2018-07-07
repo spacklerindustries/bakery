@@ -1,12 +1,12 @@
 # Starting Bakery
 ## Env Vars
 ```
-export GK_TOKEN="{token}"
 export BAKERY_ROOT=/bakery/
 export DB_PATH=/bakery/piInventory.db
 export KPARTX_PATH=kpartx
 export NFS_ADDRESS=$(hostname -I | cut -d " " -f 1)
-export GK_SERVER="http://$(hostname -I | cut -d " " -f 1):8090"
+export BUSHWOOD_SERVER="http://$(hostname -I | cut -d " " -f 1):8090"
+export BUSHWOOD_TOKEN="{token}"
 export HTTP_PORT=8081
 export TEMPLATE_PATH="/bakery/fileTemplates"
 ```
