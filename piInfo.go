@@ -103,7 +103,7 @@ func (p *PiInfo) Unbake(dm *diskManager) error {
 }
 
 func (p *PiInfo) doPpiAction(action string) error {
-	if action != "on" && action != "off" {
+	if action != "on" && action != "off" && action != "hardoff"{
 		return fmt.Errorf("action %v not supported", action)
 	}
 	params := ppiParams{
@@ -141,11 +141,11 @@ func (p *PiInfo) PowerOn() error {
 }
 
 func (p *PiInfo) PowerOff() error {
-	return p.doPpiAction("off")
+	return p.doPpiAction("hardoff") //hard power off
 }
 
 func (p *PiInfo) PowerCycle() error {
-	err := p.doPpiAction("off")
+	err := p.doPpiAction("hardoff")
 	if err != nil {
 		return err
 	}
