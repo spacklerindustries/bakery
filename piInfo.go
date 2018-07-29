@@ -19,16 +19,18 @@ const (
 	NOTINUSE  piStatus = 1
 	INUSE     piStatus = 2
 	PREPARING piStatus = 3
+	BOOTING   piStatus = 4
 )
+
 
 type piList map[string]PiInfo
 
 type PiInfo struct {
 	db             *sql.DB
-	Id             string    `json:"id"`
-	Status         piStatus  `json:"status"`
-	Disks          []*disk   `json:"disks,omitempty"`
-	SourceBakeform *Bakeform `json:"sourceBakeform,omitempty"`
+	Id             string     `json:"id"`
+	Status         piStatus   `json:"status"`
+	Disks          []*disk    `json:"disks,omitempty"`
+	SourceBakeform *Bakeform  `json:"sourceBakeform,omitempty"`
 	ppiPath        string
 	ppiConfigPath  string
 }
