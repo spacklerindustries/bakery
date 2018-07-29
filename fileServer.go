@@ -33,9 +33,9 @@ type templatevars struct {
 
 func newFileServer(nfs fileBackend, inventory piManager, dm *diskManager) (fileServer, error) {
 	return &FileServer{
-		nfs:         nfs,
-		piInventory: inventory,
-		diskManager: dm,
+    nfs:         nfs,
+    piInventory: inventory,
+    diskManager: dm,
 	}, nil
 }
 
@@ -47,74 +47,47 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
 	//check if piId is allready registered. If not then register.
 	pi, err := f.piInventory.GetPi(piId)
 	if err != nil {
-		log.Println("Pi not found in inventory. Putting a new one in the fridge.")
-		pi = f.piInventory.NewPi(piId)
-		err = pi.Save()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	if pi.Status == NOTINUSE {
-		//Pi is not in inventory or not in use. Then don't serve files and power it off
-		log.Printf("Pi %v came online but it's not in use. Powering it off\n", pi.Id)
-    // poll bushwood
-    var netClient = &http.Client{
-      Timeout: time.Second * 10,
+    log.Println("Pi not found in inventory. Putting a new one in the fridge.")
+    pi = f.piInventory.NewPi(piId)
+    err = pi.Save()
+    if err != nil {
+    	panic(err)
     }
-    token := bushwoodToken
-    req, _ := http.NewRequest("GET", bushwood+"/api/v1/slots/pi/"+pi.Id, nil)
-    req.Header.Add("Authorization", "Bearer "+token)
-    timeout_count := 0
-    //loop 6 times and break (30 seconds) timeout if no result
-    for {
-      if timeout_count == 6 {
-        break
-      }
-      resp, _ := netClient.Do(req)
-      log.Printf("%v%v%v", bushwood,"/api/v1/slots/pi/",pi.Id)
-      body, _ := ioutil.ReadAll(resp.Body)
-      textBytes := []byte(body)
-      resp.Body.Close()
-      slotId := string(textBytes)[1 : len(string(textBytes))-1]
-      //check if our response is empty, if it is, sleep, increment, and try again
-      if string(slotId) == "" {
-        time.Sleep(5 * time.Second)
-        timeout_count++
-      } else {
-        break
-      }
-    }
-		err = pi.PowerOff()
-		if err != nil {
-			log.Println("A Pi just came online but I can't control its power state. Error:" + err.Error())
-		}
-		w.WriteHeader(http.StatusNotFound)
-		return
 	}
 
 	//if filename == cmdline.txt then parse the template. else just serve the file
-	bootLocation := pi.SourceBakeform.bootLocation
+  bootLocation := f.nfs.GetBootRoot()+"/2018-04-18-raspbian-stretch-lite"
+  if pi.Status != NOTINUSE && pi.Status != BOOTING {
+	   bootLocation = pi.SourceBakeform.bootLocation
+  }
 	//strings.Replace(bootLocation, "/", "", 1) //remove the first /
 	fullFilename := path.Join(bootLocation, filename)
 
+  //log.Printf("%v requested", fullFilename)
 	if filename == "cmdline.txt" {
-		c := templatevars{
-			NfsServer: f.nfs.GetNfsAddress(),
-			NfsRoot:   pi.Disks[0].Location,
-		}
-		log.Printf("%v requested for: %v\n", filename, pi.Id)
-		t, err := template.New("templatefile").ParseFiles(templatePath+"/cmdline.txt")
-		if err != nil {
-			panic(err)
-		}
-		t.ExecuteTemplate(w, filename, c)
+    c := templatevars{
+      NfsServer: f.nfs.GetNfsAddress(),
+      NfsRoot:   f.nfs.GetNfsRoot()+"/481f6eed-275a-4456-9614-0d088dac4a41",
+    }
+    if pi.Status != NOTINUSE && pi.Status != BOOTING {
+      c = templatevars{
+      	NfsServer: f.nfs.GetNfsAddress(),
+      	NfsRoot:   pi.Disks[0].Location,
+      }
+    }
+    log.Printf("%v requested for: %v\n", filename, pi.Id)
+    t, err := template.New("templatefile").ParseFiles(templatePath+"/cmdline.txt")
+    if err != nil {
+    	panic(err)
+    }
+    t.ExecuteTemplate(w, filename, c)
+    return
 	} else if filename == "config.txt" {
       // we want to make sure we are enabling uart on rpi3s so inject into config.txt
       // generate a new config.txt to serve temporarily from the original one without modifying it directly
       config_file, err := ioutil.ReadFile(fullFilename) // just pass the file name
     	if err != nil {
-    		fmt.Println(err)
+        fmt.Println(err)
     	}
       commentlines := regexp.MustCompile("(?m)[\r\n]+^#.*$")
       nocomments := commentlines.ReplaceAllString(string(config_file), "")
@@ -128,16 +101,60 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
       random_uuid := uuid.New().String()
     	err = ioutil.WriteFile("/tmp/"+random_uuid, []byte(config_file_save), 0755)
       if err != nil {
-    		fmt.Println(err.Error())
+        fmt.Println(err.Error())
     	}
-  		http.ServeFile(w, r, "/tmp/"+random_uuid)
+      http.ServeFile(w, r, "/tmp/"+random_uuid)
       err = os.Remove("/tmp/"+random_uuid)
       if err != nil {
         fmt.Println(err.Error())
       }
-  	  return
+  	  //return
   } else {
-	  http.ServeFile(w, r, fullFilename)
+    http.ServeFile(w, r, fullFilename)
 	  return
+  }
+
+  log.Printf("PiID: %v, PiStatus: %v", pi.Id, pi.Status)
+  // check if the pi status is booting, if it is not in use and booting poll bushwood to see if it knows the serial number yet
+  if pi.Status == NOTINUSE {
+    pi.SetStatus(BOOTING)
+    //Pi is not in inventory or not in use. Then don't serve files and power it off
+    log.Printf("Pi %v came online but it's not in use. Powering it off\n", pi.Id)
+
+    // poll bushwood
+    var netClient = &http.Client{
+      Timeout: time.Second * 10,
+    }
+    token := bushwoodToken
+    req, _ := http.NewRequest("GET", bushwood+"/api/v1/slots/pi/"+pi.Id, nil)
+    req.Header.Add("Authorization", "Bearer "+token)
+    timeout_count := 0
+    //loop 4 times and break (30 seconds) timeout if no result
+    for {
+      if timeout_count == 6 {
+        break
+      }
+      resp, _ := netClient.Do(req)
+      log.Printf("%v%v%v", bushwood,"/api/v1/slots/pi/",pi.Id)
+      body, _ := ioutil.ReadAll(resp.Body)
+      textBytes := []byte(body)
+      resp.Body.Close()
+      slotId := string(textBytes)[1 : len(string(textBytes))-1]
+      //check if our response is empty, if it is, sleep, increment, and try again
+      if string(slotId) == "" {
+        time.Sleep(time.Second * 5)
+        timeout_count++
+      } else {
+        break
+      }
+    }
+    pi.SetStatus(NOTINUSE)
+    log.Printf("PiID: %v, PiStatus: %v", pi.Id, pi.Status)
+    err = pi.PowerOff()
+    if err != nil {
+      log.Println("A Pi just came online but I can't control its power state. Error:" + err.Error())
+    }
+    //w.WriteHeader(http.StatusNotFound)
+    return
   }
 }
