@@ -10,17 +10,17 @@ import (
   "github.com/gorilla/mux"
 )
 
-var bushwood = ""
+var bushwoodServer = ""
 var bushwoodToken = ""
 var templatePath = ""
 
 func main() {
   httpPort := os.Getenv("HTTP_PORT")
   bakeryRoot := os.Getenv("BAKERY_ROOT")
-  nfsServer := os.Getenv("NFS_ADDRESS")
+  nfsServer := os.Getenv("BAKERY_ADDRESS")
   inventoryDbPath := os.Getenv("DB_PATH")
   templatePath = os.Getenv("TEMPLATE_PATH")
-  bushwood = os.Getenv("BUSHWOOD_SERVER")
+  bushwoodServer = os.Getenv("BUSHWOOD_SERVER")
   bushwoodToken = os.Getenv("BUSHWOOD_TOKEN")
   kpartxPath := os.Getenv("KPARTX_PATH")
 
@@ -33,7 +33,7 @@ func main() {
   }
 
   if nfsServer == "" {
-    log.Fatalln("NFS_ADDRESS env var not set")
+    log.Fatalln("BAKERY_ADDRESS env var not set")
   }
 
   if inventoryDbPath == "" {
@@ -44,7 +44,7 @@ func main() {
     log.Fatalln("TEMPLATE_PATH env var not set")
   }
 
-  if bushwood == "" {
+  if bushwoodServer == "" {
     log.Fatalln("BUSHWOOD_SERVER env var not set")
   }
 

@@ -126,8 +126,8 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
       Timeout: time.Second * 10,
     }
     token := bushwoodToken
-    req, _ := http.NewRequest("GET", bushwood+"/api/v1/slots/pi/"+pi.Id, nil)
-    req.Header.Add("Authorization", "Bearer "+token)
+    req, _ := http.NewRequest("GET", bushwoodServer+"/api/v1/slots/pi/"+pi.Id, nil)
+    req.Header.Add("apikey", token)
     timeout_count := 0
     //loop 4 times and break (30 seconds) timeout if no result
     for {
@@ -135,7 +135,7 @@ func (f *FileServer) fileHandler(w http.ResponseWriter, r *http.Request) {
         break
       }
       resp, _ := netClient.Do(req)
-      log.Printf("%v%v%v", bushwood,"/api/v1/slots/pi/",pi.Id)
+      log.Printf("%v%v%v", bushwoodServer,"/api/v1/slots/pi/",pi.Id)
       body, _ := ioutil.ReadAll(resp.Body)
       textBytes := []byte(body)
       resp.Body.Close()
